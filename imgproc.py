@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import random
 
-def random_jitters(image, add_num, thres):
+def rand_jitters(image, add_num, thres):
     """
     input: image, add_num, thres (normally between [0, 5])
     output: image with random jitters (image size change)
@@ -20,19 +20,37 @@ def random_jitters(image, add_num, thres):
                 thres + random_seed[add_num + i] : w - thres + random_seed[add_num + i], :]
     return result
 
-def add_rand_blur(image, thres):
+def rand_blur(image, thres, large_scale):
     """
     input: image, thres (value)
     output: image with random blur (image size unchange)
     description: if need large scale blur, directly downsample and upsample
     """
+    print thres
+    print large_scale
+    h, w, c = image.shape
+    if large_scale:
+        result = cv2.resize(image, (w / thres, h / thres))
+        result = cv2.GaussianBlur(result, (9, 9), 0)
+        return cv2.resize(result, (w, h))
+    else:
+        return cv2.GaussianBlur(image, (thres, thres), 0)
 
-def add_salt_noise(image ,thres):
+def add_salt_noise(image, thres):
     """
-    input: image, thres (add salt noise degree)
+    input: image, thres (add salt noise degree 0 - 1, percent of image pixels)
     output: image with salt noise (image size unchange)
     description: null
     """
+    h, w, c = image.shape
+    pixel_num = int(thres * h * w)
+    result = image.copy()
+    for i in range(pixel_num):
+        x_pos = random.randint(0, w - 1)
+        y_pos = random.randint(0, h - 1)
+        value = random.randint(0, 255)
+        result[y_pos, x_pos, :] = [value, value, value]
+    return result
 
 def jpeg_compression(image, thres):
     """
@@ -134,22 +152,22 @@ if __name__ == "__main__":
     count = 0
     while(count < 1):
         count += 1
-#select model to test
-        enable_module = "jpeg"
-#load test image
+        #select model to test
+        enable_module = "blur"
+        #load test image
         image = cv2.imread("test.jpg")
-#process
+        #process
         if enable_module == "jitter":
-            result = random_jitters(image, 2, 5)
+            result = rand_jitters(image, 2, 5)
         elif enable_module == "blur":
-            pass
-        elif enable_module == "salt":
-            pass
+            result = rand_blur(image, 9, False)
+        elif enable_module == "noise":
+            result = add_salt_noise(image, 0.01)
         elif enable_module == "jpeg": 
             result = jpeg_compression(image, 50)
         elif enable_module == "add_png":
             png_image = cv2.imread("sohu-big.png", cv2.IMREAD_UNCHANGED)
             h, w, c = image.shape
             result = add_png_image(image, png_image, [int(w * 0.1), 0, int(w * 0.8), int(h * 0.8)])
-#write image file
+        #write image file
         cv2.imwrite("test_result_{}.jpg".format(count), result)
