@@ -1,12 +1,12 @@
 generate fake training data  
 ========================== 
 - image inpaint   
-   add png watermark  
+   add png watermark(DONE)  
    add patch  
 - denoise  
-   add jitter  
+   add jitter(DONE)  
    add salt noise  
-   add jpeg compress loss  
+   add jpeg compress loss(DONE)  
    add blur  
 - super resolution  
    up/down sample  
